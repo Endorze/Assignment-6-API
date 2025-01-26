@@ -50,3 +50,47 @@ document.getElementById("user-input").addEventListener("keypress", (event) => {
     }
 });
 
+const capitalizeFirstLetter = (val) => {
+  return String(val).charAt(0).toUpperCase() + String(val).slice(1);
+}
+
+const getDataByType = async (type) => {
+  const container = document.querySelector(".pokemon-container");
+  container.innerHTML = "";
+
+  try {
+    const response = await fetch(`${API_ENDPOINT}type/${type}`);
+    if (!response.ok) {
+      throw new Error("Type not found");
+    }
+    const data = await response.json();
+
+    data.pokemon.forEach((entry) => {
+      //Vi splittar url som hämtas så att vi endast får ID på pokemon från responsen, detta används för att hämta korrekt bild.
+      const pokemonId = entry.pokemon.url.split("/").slice(-2, -1)[0];
+      const pokemonDiv = document.createElement("div");
+      pokemonDiv.className = "pokemon-div";
+
+      const pokemonImg = document.createElement("img");
+      pokemonImg.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemonId}.png`;
+      pokemonImg.alt = entry.pokemon.name;
+
+      const pokemonName = document.createElement("p");
+      pokemonName.textContent = capitalizeFirstLetter(entry.pokemon.name);
+
+      pokemonDiv.appendChild(pokemonImg);
+      pokemonDiv.appendChild(pokemonName);
+
+      container.appendChild(pokemonDiv);
+    });
+  } catch (error) {
+    console.error("Error fetching Pokémon by type:", error);
+  }
+};
+
+document.querySelectorAll(".pokemon-types img").forEach((img) => {
+  img.addEventListener("click", () => {
+    const type = img.dataset.type;
+    getDataByType(type);
+  });
+});
